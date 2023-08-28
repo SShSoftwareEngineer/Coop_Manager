@@ -6,8 +6,8 @@ from django.http import HttpResponse, HttpResponseNotFound
 # Create your views here.
 
 def index(request):
-    # return render(request, 'coop/index.html')
-    return HttpResponse("Hello, world!")
+    return render(request, 'main_app/index.html')
+    # return HttpResponse("Hello, world!")
 
 
 def page_not_found(request, exception):

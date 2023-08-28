@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.i18n import i18n_patterns
 
 from coop import settings
 
@@ -22,9 +23,9 @@ from django.conf.urls.static import static
 from main_app.views import page_not_found
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('main_app.urls')),
-]
+                  path('admin/', admin.site.urls),
+path('', include('main_app.urls')),
+              ] # + i18n_patterns(path('', include('main_app.urls')))
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
