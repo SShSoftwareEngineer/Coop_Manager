@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Страница форм</title>
+</head>
+<body>
+<h1>Страница форм</h1>
+<p><a href="{% url 'home_page' %}">Перейти на главную страницу</a></p>
+
+<form action="{% url 'form_page' %}" method="post">
+    {% csrf_token %}
+    {% for f in temp_form %}
+    	<p><label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}:</label>{{ f }}</p>
+        <div class="form-error">{{ f.errors }}</div>
+    {% endfor %}
+    <button type="submit">Нажать</button>
+</form>
+
+</body>
+</html>
