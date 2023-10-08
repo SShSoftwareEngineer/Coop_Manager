@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 
 # Register your models here.
 
@@ -7,12 +9,18 @@ from .models import Estate, Person, Address, ContactType, Contact, RelationType,
 
 @admin.register(Estate)
 class EstateAdmin(admin.ModelAdmin):
-    pass
+    prepopulated_fields = {"slug": ("estate_number",)}
+    # list_display = ()
+    # list_display_links = ()
+    # search_fields = ()
+    # list_editable = ()
+    # list_filter = ()
+    ordering = (Cast('estate_number', IntegerField()),)
 
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    pass
+    prepopulated_fields = {"slug": ("name", "surname", "patronymic")}
 
 
 @admin.register(Address)
@@ -35,5 +43,11 @@ class PassAdmin(admin.ModelAdmin):
     pass
 
 
-admin.site.register(ContactType)
-admin.site.register(RelationType)
+@admin.register(ContactType)
+class ContactTypeAdmin(admin.ModelAdmin):
+    ordering = ("contact_type",)
+
+
+@admin.register(RelationType)
+class RelationTypeAdmin(admin.ModelAdmin):
+    ordering = ("relation_type",)

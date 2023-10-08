@@ -2,10 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Домашняя страница</title>
 </head>
 <body>
-<h1>Hello, World!</h1>
+<h1>Домашняя страница</h1>
+{% block main_menu %}
+    {% for item in main_menu %}
+        <li><a href="{% url item.url %}">{{ item.title }}</a></li>
+    {% endfor %}
+{% endblock %}
+
 {#{% load i18n %}#}
 {#<form action="{% url 'set_language' %}" method="post">{% csrf_token %}#}
 {#    <input name="next" type="hidden" value="{{ redirect_to }}">#}
