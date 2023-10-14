@@ -1,16 +1,18 @@
+{% load main_app_tags %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Служебная страница</title>
+    <title>Сервисная страница</title>
 </head>
 <body>
-<h1>Служебная страница</h1>
+<h1>Сервисная страница</h1>
 
-<p><a href="{% url 'home_page' %}">Перейти на главную страницу</a></p>
-<p>
-<p><a href="{% url 'admin:index' %}">Перейти в админ панель</a></p>
-<p>
+<br>
+{% show_main_menu %}
+<br>
+
 <form method="post" action="{% url 'fill_base' %}">
     {% csrf_token %}
     {{ form }}

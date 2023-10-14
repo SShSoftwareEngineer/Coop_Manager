@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.urls import path
 from main_app.views import *
 
@@ -6,7 +5,6 @@ from main_app.views import *
 main_urlpatterns = [
     path('', home, name='home_page'),
     path('service/', service, name='service_page'),
-    path('form/', form, name='form_page'),
 ]
 
 # URL-пути сервисной страницы

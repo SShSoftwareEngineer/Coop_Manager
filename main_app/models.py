@@ -1,26 +1,28 @@
 from django.db import models
 from django.shortcuts import reverse
-
+# from django.utils.text import slugify
+from pytils.translit import slugify
 
 # Create your models here.
 
 
 class Estate(models.Model):
-    estate_number = models.CharField(max_length=200, unique=True, verbose_name='Number')
-    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name='Slug')
-    floor = models.IntegerField(null=True, blank=True)
-    length = models.FloatField(null=True, blank=True)
-    width = models.FloatField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    area = models.FloatField(null=True, blank=True)
-    observation_pit = models.BooleanField(null=True, blank=True)
-    build_date = models.DateField(null=True, blank=True)
-    initial_cost = models.CharField(max_length=200, null=True, blank=True)
-    estimated_cost = models.CharField(max_length=200, null=True, blank=True)
-    is_sold = models.BooleanField(null=True, blank=True)
-    is_rented = models.BooleanField(null=True, blank=True)
-    update_date = models.DateTimeField(auto_now=True, null=True, blank=True)
-    comment = models.TextField(null=True, blank=True)
+    estate_number = models.CharField(max_length=200, unique=True, verbose_name='Номер')
+    floor = models.IntegerField(null=True, blank=True, verbose_name='Этаж')
+    length = models.FloatField(null=True, blank=True, verbose_name='Длина')
+    width = models.FloatField(null=True, blank=True, verbose_name='Ширина')
+    height = models.FloatField(null=True, blank=True, verbose_name='Высота')
+    area = models.FloatField(null=True, blank=True, verbose_name='Площадь')
+    observation_pit = models.BooleanField(null=True, blank=True, verbose_name='Смотровая яма')
+    build_date = models.DateField(null=True, blank=True, verbose_name='Дата постройки')
+    initial_cost = models.CharField(max_length=200, null=True, blank=True, verbose_name='Начальная стоимость')
+    estimated_cost = models.CharField(max_length=200, null=True, blank=True, verbose_name='Оценочная стоимость')
+    estimated_cost_date = models.DateField(null=True, blank=True, verbose_name='Дата оценки')
+    for_sale = models.BooleanField(null=True, blank=True, verbose_name='Продается')
+    for_rent = models.BooleanField(null=True, blank=True, verbose_name='Сдается в аренду')
+    update_date = models.DateTimeField(auto_now=True, null=True, blank=True, verbose_name='Данные обновлены')
+    comment = models.TextField(null=True, blank=True, verbose_name='Комментарии')
+    slug = models.SlugField(max_length=255, null=True, blank=True, unique=True, db_index=True, verbose_name='Slug')
 
     class Meta:
         verbose_name = 'Estate'
@@ -33,23 +35,39 @@ class Estate(models.Model):
     def get_absolute_url(self):
         return reverse('estate_data', kwargs={'estate_slug': self.slug})
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.slug:
+            self.slug = slugify(f'{self.estate_number}-{self.id}')
+            self.save()
+
 
 class Person(models.Model):
-    name = models.CharField(max_length=200)
     surname = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     patronymic = models.CharField(max_length=200, null=True, blank=True)
-    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name='Slug')
     photo = models.ImageField(upload_to='photos/%pk', null=True, blank=True)
     update_date = models.DateTimeField(auto_now=True, null=True, blank=True)
     questions = models.TextField(null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
     owner_id = models.ForeignKey('self', on_delete=models.DO_NOTHING, null=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name='Slug')
 
     class Meta:
-        verbose_name_plural = 'People'
+        verbose_name_plural = 'Personalities'
+        ordering = ['surname', 'name', 'patronymic']
 
     def __str__(self):
         return f'{self.surname} {self.name} {self.patronymic}'
+
+    def get_absolute_url(self):
+        return reverse(f'{self.surname} {self.name} {self.patronymic}', kwargs={'person_slug': self.slug})
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.slug:
+            self.slug = slugify(f'{self.surname}-{self.name}-{self.patronymic}-{self.id}')
+            self.save()
 
 
 class Address(models.Model):

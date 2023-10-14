@@ -1,5 +1,6 @@
-{#{% extends 'main_app/base.html' %}#}
+{% load main_app_tags %}
 
+{#{% extends 'main_app/base.html' %}#}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -9,9 +10,30 @@
 </head>
 <body>
 
-{% block content %}
-    <h2>{{ estate_number }}</h2>
-{% endblock %}
+<h1>Данные бокса</h1>
+
+<br>
+{% show_main_menu %}
+<br>
+
+<br>
+<table>
+    {% for field, value in estate_fields.items %}
+        <tr>
+            <td>{{ field }}:</td>
+            <td>{{ value }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<br>
+<br>
+<form method="post">
+    {% csrf_token %}
+    {% for form in estate_form %}
+        <p><label class="form-label" for="{{ form.id_for_label }}">{{ form.label }}:</label>{{ form }}</p>
+        <div class="form-error">{{ form.errors }}</div>
+    {% endfor %}
+</form>
 
 </body>
 </html>

@@ -1,13 +1,13 @@
 from django.shortcuts import render
-from main_app.forms import TempForm
+from main_app.forms import EstateForm
 
 
 def form(request):
     if request.method == 'POST':
-        temp_form = TempForm(request.POST)
-        if temp_form.is_valid():
-            print(temp_form.cleaned_data)
-            temp_form.save()
+        estate_form = EstateForm(request.POST)
+        if estate_form.is_valid():
+            print(estate_form.cleaned_data)
+            estate_form.save()
     else:
-        temp_form = TempForm()
-    return render(request, 'main_app/form.html', {'temp_form': temp_form})
+        estate_form = EstateForm()
+    return render(request, 'main_app/form.html', {'estate_form': estate_form})

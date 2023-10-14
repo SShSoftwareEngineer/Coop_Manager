@@ -1,10 +1,6 @@
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
-
-main_menu = [{'title': 'Домашняя страница', 'url': 'home_page'},
-             {'title': 'Страница форм', 'url': 'form_page'},
-             {'title': 'Сервисная страница', 'url': 'service_page'},
-             {'title': 'Админ панель', 'url': 'admin:index'}]
+from main_app.constants import main_menu
 
 
 def home(request):
@@ -14,7 +10,8 @@ def home(request):
 
 
 def service(request):
-    return render(request, 'main_app/service.html')
+    context = {'main_menu': main_menu}
+    return render(request, 'main_app/service.html', context=context)
 
 
 def page_not_found(request, exception):
