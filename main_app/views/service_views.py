@@ -1,11 +1,23 @@
-import random
-from random import choice
+from random import choice, random
+from typing import List
 
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.shortcuts import render
 from faker import Faker
-from main_app.constants import PredefinedTypes
-from main_app.constants import main_menu, FILL_BASE_COUNT
+from main_app.constants import PredefinedTypes, MAIN_MENU, FILL_BASE_COUNT, RANDOM_PHOTO_SRC
 from main_app.models import *
+from django.conf import settings
+
+
+def choice_by_probability(probabilities: List[int]) -> int:
+    above_probabilities = [x / sum(probabilities) for x in probabilities]
+    ranges_probabilities = [sum(above_probabilities[:x + 1]) for x in range(len(above_probabilities))]
+    ranges_probabilities.insert(0, 0)
+    random_value = random()
+    for random_choice in range(len(ranges_probabilities)):
+        if ranges_probabilities[random_choice] <= random_value < ranges_probabilities[random_choice + 1]:
+            return random_choice
 
 
 def fill_base(request):
@@ -17,7 +29,7 @@ def fill_base(request):
         faker = Faker()
         faker_ua = Faker('uk_UA')
         faker_ru = Faker('ru_RU')
-        Faker.seed(random.randint(0, 1000))
+        Faker.seed()
         # Инициализация предопределенных типов данных имеющимися в базе данных + заданными по умолчанию и запись их
         # в соответствующие таблицы базы данных
         contact_types = set()
@@ -34,7 +46,7 @@ def fill_base(request):
         first_estate_number = 1 if not Estate.objects.count() else int(Estate.objects.latest("id").estate_number) + 1
         estate_list = []
         for i in range(FILL_BASE_COUNT):
-            estate_list.append(Estate(
+            current_estate = Estate(
                 estate_number=str(first_estate_number + i),
                 floor=faker.random_int(min=1, max=3),
                 length=faker.random_int(min=10, max=15),
@@ -49,29 +61,36 @@ def fill_base(request):
                 for_sale=faker.null_boolean(),
                 for_rent=faker.null_boolean(),
                 comment=faker_ru.paragraph(nb_sentences=1)
-            ))
+            )
+            estate_list.append(current_estate)
         # Генерация случайных персональных данных, модель Person
         person_list = []
+        photos_list = os.listdir(os.path.join(settings.BASE_DIR, RANDOM_PHOTO_SRC))
         for i in range(FILL_BASE_COUNT):
-            if random.choice([0, 1]):
-                person_name = faker_ru.first_name_male(),
-                person_surname = faker_ru.last_name_male(),
-                person_patronymic = faker_ru.middle_name_male(),
+            if choice([0, 1]):
+                person_name = faker_ru.first_name_male()
+                person_patronymic = faker_ru.middle_name_male()
+                person_surname = faker_ru.last_name_male()
             else:
-                person_name = faker_ru.first_name_female(),
-                person_surname = faker_ru.last_name_female(),
+                person_name = faker_ru.first_name_female()
                 person_patronymic = faker_ru.middle_name_female()
-            person_list.append(Person(
-                # ''.join нужен из-за того, что Faker почему-то возвращает кортеж
-                name=''.join(person_name),
-                surname=''.join(person_surname),
-                patronymic=''.join(person_patronymic),
-                # photo = models.ImageField(upload_to='photos/%pk', null=True, blank=True)
+                person_surname = faker_ru.last_name_female()
+            random_photo = os.path.join(settings.BASE_DIR, RANDOM_PHOTO_SRC, choice(photos_list))
+            new_photo_name = slugify(f'{person_surname}-{person_name}-{person_patronymic}') + '.jpg'
+            photo_data = open(random_photo, 'rb').read()
+            photo_file = ContentFile(photo_data)
+            photo_path = default_storage.save(os.path.join(settings.PHOTO_URL, new_photo_name), photo_file)
+            current_person = Person(
+                name=person_name,
+                patronymic=person_patronymic,
+                surname=person_surname,
+                photo=os.path.join(settings.PHOTO_URL, photo_path),
                 update_date=faker.date_between(start_date='-5y', end_date='-1y'),
                 questions=faker_ru.paragraph(nb_sentences=1),
                 comment=faker_ru.paragraph(nb_sentences=1)
                 # owner_id = models.ForeignKey('self', on_delete=models.DO_NOTHING, null=True, blank=True)
-            ))
+            )
+            person_list.append(current_person)
 
         # Генерация адресов
         # Генерация контактов
@@ -80,18 +99,20 @@ def fill_base(request):
             item.save()
         for item in person_list:
             item.save()
-    else:
-        pass
-    context = {
-        'title': 'Добавление данных в базу',
-        'text': "В базу добавлены новые случайные данные",
-        'main_menu': main_menu
-    }
-    return render(request, 'main_app/service_report.html', context=context)
+
+        else:
+            pass
+        context = {
+            'title': 'Добавление данных в базу',
+            'text': "В базу добавлены новые случайные данные",
+            'main_menu': MAIN_MENU
+        }
+        return render(request, 'main_app/service_report.html', context=context)
 
 
 def clean_base(request):
     if request.method == 'POST':
+        # очистка всех таблиц
         Estate.objects.all().delete()
         Person.objects.all().delete()
         Address.objects.all().delete()
@@ -100,11 +121,18 @@ def clean_base(request):
         RelationType.objects.all().delete()
         Relation.objects.all().delete()
         Pass.objects.all().delete()
+        # удаление файлов фотографий
+        photo_dir = os.path.join(settings.BASE_DIR, settings.MEDIA_URL[1:], settings.PHOTO_URL)
+        for filename in os.listdir(photo_dir):
+            file_path = os.path.join(photo_dir, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
     else:
         pass
+
     context = {
         'title': 'Очистка базы данных',
         'text': "База данных полностью очищена",
-        'main_menu': main_menu
+        'main_menu': MAIN_MENU
     }
     return render(request, 'main_app/service_report.html', context=context)

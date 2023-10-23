@@ -1,16 +1,16 @@
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
-from main_app.constants import main_menu
+from main_app.constants import MAIN_MENU
 
 
 def home(request):
-    context = {'main_menu': main_menu}
+    context = {'main_menu': MAIN_MENU}
     return render(request, 'main_app/home.html', context=context)
     # return HttpResponse("Hello, world!")
 
 
 def service(request):
-    context = {'main_menu': main_menu}
+    context = {'main_menu': MAIN_MENU}
     return render(request, 'main_app/service.html', context=context)
 
 

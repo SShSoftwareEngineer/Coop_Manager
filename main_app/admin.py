@@ -10,13 +10,22 @@ from .models import Estate, Person, Address, ContactType, Contact, RelationType,
 
 @admin.register(Estate)
 class EstateAdmin(admin.ModelAdmin):
-    readonly_fields = ('slug',)
-    list_display = ('estate_number', 'floor', 'area')
+    readonly_fields = ('slug', 'update_date')
+    list_display = ('estate_number', 'floor')
     list_display_links = ('estate_number',)
     search_fields = ('estate_number', 'floor')
-    list_editable = ('area',)
+    list_editable = ()
     list_filter = ('floor',)
     ordering = (Cast('estate_number', IntegerField()),)
+    fieldsets = [
+        (None, {'fields': ['estate_number', 'floor']}),
+        (None, {'fields': [('length', 'width', 'height'), 'area']}),
+        (None, {'fields': ['observation_pit']}),
+        (None, {'fields': [('initial_cost', 'build_date')]}),
+        (None, {'fields': [('estimated_cost', 'estimated_cost_date')]}),
+        (None, {'fields': [('for_rent', 'for_sale')]}),
+        (None, {'fields': ['comment', 'update_date', 'slug']}),
+    ]
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -27,7 +36,18 @@ class EstateAdmin(admin.ModelAdmin):
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    readonly_fields = ('slug',)
+    readonly_fields = ('slug', 'update_date')
+    list_display = ('surname', 'name', 'patronymic', 'photo')
+    list_display_links = ('surname', 'name', 'patronymic')
+    list_editable = ('photo',)
+    search_fields = ('surname', 'name', 'patronymic')
+    ordering = ('surname', 'name', 'patronymic')
+    fieldsets = [
+        (None, {'fields': ['surname', ('name', 'patronymic')]}),
+        (None, {'fields': ['photo']}),
+        (None, {'fields': [('questions', 'comment')]}),
+        (None, {'fields': ['owner_id', 'update_date', 'slug']}),
+    ]
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)

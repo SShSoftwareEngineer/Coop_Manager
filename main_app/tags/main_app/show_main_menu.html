@@ -1,5 +1,3 @@
-{% block show_main_menu %}
-    {% for item in main_menu %}
-        <li><a href="{% url item.url %}">{{ item.title }}</a></li>
-    {% endfor %}
-{% endblock %}
+{% for item in main_menu %}
+    <li><a href="{% url item.url %}">{{ item.title }}</a></li>
+{% endfor %}

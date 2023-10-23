@@ -10,4 +10,4 @@ def form(request):
             estate_form.save()
     else:
         estate_form = EstateForm()
-    return render(request, 'main_app/form.html', {'estate_form': estate_form})
+    return render(request, 'main_app/estate_data.html', {'estate_form': estate_form})

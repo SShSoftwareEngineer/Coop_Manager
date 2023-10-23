@@ -17,15 +17,9 @@
 <br>
 
 <br>
-<table>
-    {% for field, value in estate_fields.items %}
-        <tr>
-            <td>{{ field }}:</td>
-            <td>{{ value }}</td>
-        </tr>
-    {% endfor %}
-</table>
+{% show_table_data table_data=estate_data %}
 <br>
+
 <br>
 <form method="post">
     {% csrf_token %}

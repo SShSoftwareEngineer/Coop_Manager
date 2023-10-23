@@ -18,5 +18,13 @@ estate_data_urlpatterns = [
     path('estate_data/<slug:estate_slug>', estate_data, name='estate_data'),
 ]
 
+# URL-пути страницы данных о персоне
+person_data_urlpatterns = [
+    path('person_data/<slug:person_slug>', person_data, name='person_data'),
+]
+
 # URL-пути приложения, суммарный файл
-urlpatterns = main_urlpatterns + service_page_urlpatterns + estate_data_urlpatterns
+urlpatterns = (main_urlpatterns +
+               service_page_urlpatterns +
+               estate_data_urlpatterns +
+               person_data_urlpatterns)

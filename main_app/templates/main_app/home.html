@@ -15,8 +15,8 @@
 
 
     {% comment %}
-{% block main_menu %}
-    {% for item in main_menu %}
+{% block MAIN_MENU %}
+    {% for item in MAIN_MENU %}
         <li><a href="{% url item.url %}">{{ item.title }}</a></li>
     {% endfor %}
 {% endblock %}
