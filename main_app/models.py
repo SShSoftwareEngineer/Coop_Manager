@@ -39,7 +39,6 @@ class Estate(models.Model):
     class Meta:
         verbose_name = 'Estate'
         verbose_name_plural = 'Estates'
-        # ordering = []
 
     def __str__(self):
         return str(self.estate_number)
@@ -85,7 +84,7 @@ class Person(models.Model):
     photo = models.ImageField(upload_to=PHOTO_URL, null=True, blank=True, verbose_name='Фотография')
     questions = models.TextField(null=True, blank=True, verbose_name='Вопросы')
     comment = models.TextField(null=True, blank=True, verbose_name=STRING_CONST.get('model.comment'))
-    owner_id = models.ForeignKey('self', on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Владелец')
+    owner_id = models.OneToOneField('self', on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Владелец')
     update_date = models.DateTimeField(auto_now=True, null=True, blank=True,
                                        verbose_name=STRING_CONST.get('model.update_date'))
     slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name=STRING_CONST.get('model.slug'))
@@ -141,75 +140,95 @@ class Address(models.Model):
     comment = models.TextField(null=True, blank=True, verbose_name=STRING_CONST.get('model.comment'))
     update_date = models.DateTimeField(auto_now=True, null=True, blank=True,
                                        verbose_name=STRING_CONST.get('model.update_date'))
-    person_id = models.ForeignKey(Person, on_delete=models.DO_NOTHING)
+    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING)
 
     class Meta:
         verbose_name = 'Address'
         verbose_name_plural = 'Addresses'
-        ordering = ['city', 'street', 'house_number', 'flat_number']
+        ordering = ['region', 'city', 'street', 'house_number', 'flat_number']
 
     def __str__(self):
-        return f'{self.street}, {self.house_number}, {self.flat_number}, {self.city}, {self.region}, {self.postal_code}'
+        return (f'{self.street}, {self.house_number}, кв. {self.flat_number}, {self.city}, ' +
+                f'{self.region}, {self.postal_code}')
+
+    def get_data_for_user(self):
+        data_for_user = {
+            self._meta.get_field('flat_number').verbose_name: self.flat_number,
+            self._meta.get_field('house_number').verbose_name: self.house_number,
+            self._meta.get_field('street').verbose_name: modify_field_value(self.street),
+            self._meta.get_field('city').verbose_name: modify_field_value(self.city),
+            self._meta.get_field('region').verbose_name: modify_field_value(self.region),
+            self._meta.get_field('postal_code').verbose_name: modify_field_value(self.postal_code),
+        }
+        if self.person_id:
+            data_for_user.update({self._meta.get_field('owner_id').verbose_name: self.person_id})
+        return data_for_user
+
+    def get_data_for_personal(self):
+        data_for_personal = self.get_data_for_user()
+        data_for_personal.update({self._meta.get_field('comment').verbose_name: modify_field_value(self.comment)})
+        data_for_personal.update(
+            {self._meta.get_field('update_date').verbose_name: self.update_date.strftime("%d.%m.%Y")})
+        return data_for_personal
 
 
 class ContactType(models.Model):
-    contact_type = models.CharField(max_length=200, unique=True)
+    contact_type = models.CharField(max_length=200, verbose_name='Тип контактной информации')
 
     def __str__(self):
         return str(self.contact_type)
 
 
 class Contact(models.Model):
-    contact_info = models.CharField(max_length=200)
-    contact_type = models.ForeignKey(ContactType, on_delete=models.DO_NOTHING)
-    person_id = models.ForeignKey(Person, on_delete=models.DO_NOTHING)
+    contact_info = models.CharField(max_length=200, verbose_name='Контактная информация')
+    contact_type = models.ForeignKey(ContactType, null=True, blank=True, on_delete=models.DO_NOTHING)
+    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        verbose_name = 'Contact'
+        verbose_name_plural = 'Contacts'
+        ordering = ['contact_type', 'contact_info']
 
     def __str__(self):
         return f'{self.contact_type}: {self.contact_info}'
 
 
 class RelationType(models.Model):
-    relation_type = models.CharField(max_length=200, unique=True)
+    relation_type = models.CharField(max_length=200, verbose_name='Отношение к владельцу')
 
     def __str__(self):
         return str(self.relation_type)
 
 
 class Relation(models.Model):
-    ownership_part = models.FloatField(null=True, blank=True)
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
-    person_id = models.OneToOneField(Person, on_delete=models.DO_NOTHING)
-    estate_id = models.ForeignKey(Estate, on_delete=models.DO_NOTHING)
-    relation_type = models.ForeignKey(RelationType, on_delete=models.DO_NOTHING)
+    ownership_part = models.FloatField(null=True, blank=True, verbose_name='Доля собственности')
+    start_date = models.DateField(null=True, blank=True, verbose_name='Дата возникновения отношения')
+    end_date = models.DateField(null=True, blank=True, verbose_name='Дата прекращения отношения')
+    estate_id = models.ForeignKey(Estate, null=True, blank=True, on_delete=models.DO_NOTHING)
+    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING)
+    relation_type = models.ForeignKey(RelationType, null=True, blank=True, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        verbose_name = 'Relation'
+        verbose_name_plural = 'Relations'
 
     def __str__(self):
-        return f'{self.estate_id.estate_number}: {self.person_id}, {self.relation_type}'
+        return f'{self.estate_id.estate_number}, {self.person_id}, {self.relation_type}'
 
 
 class Pass(models.Model):
-    pass_number = models.CharField(max_length=200)
-    car_model = models.CharField(max_length=200, null=True, blank=True)
-    car_color = models.CharField(max_length=200, null=True, blank=True)
-    car_number = models.CharField(max_length=200, null=True, blank=True)
-    issue_date = models.DateField(null=True, blank=True)
-    expiration_date = models.DateField(null=True, blank=True)
-    comment = models.TextField(null=True, blank=True)
-    relation_id = models.OneToOneField(Relation, on_delete=models.DO_NOTHING)
+    pass_number = models.CharField(max_length=200, verbose_name='Номер пропуска')
+    car_model = models.CharField(max_length=200, null=True, blank=True, verbose_name='Модель ТС')
+    car_color = models.CharField(max_length=200, null=True, blank=True, verbose_name='Цвет ТС')
+    car_number = models.CharField(max_length=200, null=True, blank=True, verbose_name='Номерной знак ТС')
+    issue_date = models.DateField(null=True, blank=True, verbose_name='Дата выдачи')
+    expiration_date = models.DateField(null=True, blank=True, verbose_name='Действует до')
+    comment = models.TextField(null=True, blank=True, verbose_name=STRING_CONST.get('model.comment'))
+    relation_id = models.OneToOneField(Relation, null=True, blank=True, on_delete=models.DO_NOTHING)
 
     class Meta:
+        verbose_name = 'Pass'
         verbose_name_plural = 'Passes'
 
     def __str__(self):
-        return f'{self.pass_number}: {self.relation_id}\n{self.car_model}, {self.car_color}, {self.car_number}'
-
-# EmailField
-# FilePathField
-# ImageField
-#
-# ForeignKey
-# Чтобы создать рекурсивное отношение - объект, который имеет отношение «многие-к-одному» с самим
-# собой - используйте models.ForeignKey('self', on_delete = models.CASCADE)
-# ForeignKey.on_delete
-# ManyToManyField
-# OneToOneField
+        return f'{self.relation_id}, {self.car_model}, {self.car_color}, {self.car_number}, № {self.pass_number}'

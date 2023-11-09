@@ -1,6 +1,6 @@
 class PredefinedTypes:
     ContactTypes = (
-        'Мобильный', 'Домашний телефон', 'Рабочий телефон', 'e-mail', 'Skype', 'Telegram', 'Viber', 'Whatsapp')
+        'Мобильный телефон', 'Домашний телефон', 'Рабочий телефон', 'e-mail', 'Telegram', 'Viber', 'Whatsapp', 'Skype')
     RelationTypes = ('Владелец', 'Родственник', 'Арендатор', 'Доверенное лицо')
 
 
@@ -15,7 +15,8 @@ FIELD_VALUE_MODIFICATION = {True: 'Да', False: 'Нет', None: ''}
 STRING_CONST = {
     'model.update_date': 'Данные обновлены',
     'model.comment': 'Комментарии',
-    'model.slug': 'Slug'
+    'model.slug': 'Slug',
+    'number_divider': '-'
 }
 
 # Путь к папке со случайными фотографиями

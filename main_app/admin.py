@@ -13,7 +13,7 @@ class EstateAdmin(admin.ModelAdmin):
     readonly_fields = ('slug', 'update_date')
     list_display = ('estate_number', 'floor')
     list_display_links = ('estate_number',)
-    search_fields = ('estate_number', 'floor')
+    search_fields = ('estate_number', 'floor', 'comment')
     list_editable = ()
     list_filter = ('floor',)
     ordering = (Cast('estate_number', IntegerField()),)
@@ -40,7 +40,7 @@ class PersonAdmin(admin.ModelAdmin):
     list_display = ('surname', 'name', 'patronymic', 'photo')
     list_display_links = ('surname', 'name', 'patronymic')
     list_editable = ('photo',)
-    search_fields = ('surname', 'name', 'patronymic')
+    search_fields = ('surname', 'name', 'patronymic', 'comment')
     ordering = ('surname', 'name', 'patronymic')
     fieldsets = [
         (None, {'fields': ['surname', ('name', 'patronymic')]}),
@@ -58,12 +58,36 @@ class PersonAdmin(admin.ModelAdmin):
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ['update_date']
+    list_display = ('city', 'region', 'street', 'house_number', 'flat_number')
+    search_fields = ('region', 'city', 'street', 'comment')
+    ordering = ('city', 'street',
+                Cast('house_number', IntegerField()),
+                Cast('flat_number', IntegerField()),)
+    fieldsets = [
+        (None, {'fields': [('city', 'region')]}),
+        (None, {'fields': [('street', 'house_number', 'flat_number')]}),
+        (None, {'fields': ['postal_code', 'comment', 'update_date']}),
+    ]
+
+
+@admin.register(ContactType)
+class ContactTypeAdmin(admin.ModelAdmin):
+    ordering = ['contact_type']
 
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['person_id', 'contact_info', 'contact_type']
+    list_display_links = ['person_id', 'contact_info']
+    search_fields = ['contact_info']
+    list_filter = ['contact_type']
+    ordering = ['person_id']
+
+
+@admin.register(RelationType)
+class RelationTypeAdmin(admin.ModelAdmin):
+    ordering = ['relation_type']
 
 
 @admin.register(Relation)
@@ -73,14 +97,4 @@ class RelationAdmin(admin.ModelAdmin):
 
 @admin.register(Pass)
 class PassAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(ContactType)
-class ContactTypeAdmin(admin.ModelAdmin):
-    ordering = ("contact_type",)
-
-
-@admin.register(RelationType)
-class RelationTypeAdmin(admin.ModelAdmin):
-    ordering = ("relation_type",)
+    ordering = [Cast('pass_number', IntegerField())]
