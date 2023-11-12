@@ -31,3 +31,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler404 = page_not_found
+
+admin.site.site_header = 'Панель администрирования'
+admin.site.site_title = 'Coop'

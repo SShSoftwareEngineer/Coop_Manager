@@ -54,7 +54,8 @@ def fill_base(request):
         new_photo_name = slugify(f'{person_surname}-{person_name}-{person_patronymic}') + '.jpg'
         photo_data = open(random_photo_path, 'rb').read()
         photo_file = ContentFile(photo_data)
-        photo_filepath = default_storage.save(os.path.join(settings.PHOTO_URL, new_photo_name), photo_file)
+        photo_filepath = default_storage.save(os.path.normpath(os.path.join(settings.PHOTO_URL, new_photo_name)),
+                                              photo_file)
         rand_person = Person(
             name=person_name,
             patronymic=person_patronymic,

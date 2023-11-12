@@ -21,7 +21,7 @@ class Estate(models.Model):
     height = models.FloatField(null=True, blank=True, verbose_name='Высота')
     area = models.FloatField(null=True, blank=True, verbose_name='Площадь')
     observation_pit = models.BooleanField(null=True, blank=True, verbose_name='Смотровая яма',
-                                          choices=[(True, 'Да'), (False, 'Нет'), (None, '')])
+                                          choices=[(True, 'Есть'), (False, 'Нет'), (None, '')])
     initial_cost = models.CharField(max_length=200, null=True, blank=True, verbose_name='Начальная стоимость')
     build_date = models.DateField(null=True, blank=True, verbose_name='Дата постройки')
     estimated_cost = models.CharField(max_length=200, null=True, blank=True, verbose_name='Оценочная стоимость')
@@ -37,8 +37,8 @@ class Estate(models.Model):
                             verbose_name=STRING_CONST.get('model.slug'))
 
     class Meta:
-        verbose_name = 'Estate'
-        verbose_name_plural = 'Estates'
+        verbose_name = 'Недвижимость'
+        verbose_name_plural = 'Объекты недвижимости'
 
     def __str__(self):
         return str(self.estate_number)
@@ -81,7 +81,8 @@ class Person(models.Model):
     surname = models.CharField(max_length=200, verbose_name='Фамилия')
     name = models.CharField(max_length=200, verbose_name='Имя')
     patronymic = models.CharField(max_length=200, null=True, blank=True, verbose_name='Отчество')
-    photo = models.ImageField(upload_to=PHOTO_URL, null=True, blank=True, verbose_name='Фотография')
+    photo = models.ImageField(upload_to=PHOTO_URL, null=True, blank=True,
+                              verbose_name=STRING_CONST.get('model.person_id.photo'))
     questions = models.TextField(null=True, blank=True, verbose_name='Вопросы')
     comment = models.TextField(null=True, blank=True, verbose_name=STRING_CONST.get('model.comment'))
     owner_id = models.OneToOneField('self', on_delete=models.DO_NOTHING, null=True, blank=True, verbose_name='Владелец')
@@ -90,8 +91,8 @@ class Person(models.Model):
     slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name=STRING_CONST.get('model.slug'))
 
     class Meta:
-        verbose_name = 'Person'
-        verbose_name_plural = 'Personalities'
+        verbose_name = 'Человек'
+        verbose_name_plural = 'Члены кооператива и связанные лица'
         ordering = ['surname', 'name', 'patronymic']
 
     def __str__(self):
@@ -104,7 +105,7 @@ class Person(models.Model):
         if self.photo.name:
             photo_name, photo_extension = os.path.splitext(self.photo.name)
             photo_name = slugify(f'{self.surname}-{self.name}-{self.patronymic}')
-            self.photo.name = ''.join([photo_name, photo_extension])
+            self.photo.name = ''.join([PHOTO_URL, photo_name, photo_extension])
         super().save(*args, **kwargs)
         if not self.slug:
             self.slug = slugify(f'{self.surname}-{self.name}-{self.patronymic}-{self.id}')
@@ -140,11 +141,12 @@ class Address(models.Model):
     comment = models.TextField(null=True, blank=True, verbose_name=STRING_CONST.get('model.comment'))
     update_date = models.DateTimeField(auto_now=True, null=True, blank=True,
                                        verbose_name=STRING_CONST.get('model.update_date'))
-    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING)
+    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING,
+                                  verbose_name=STRING_CONST.get('model.person_id'))
 
     class Meta:
-        verbose_name = 'Address'
-        verbose_name_plural = 'Addresses'
+        verbose_name = 'Адрес'
+        verbose_name_plural = 'Адреса'
         ordering = ['region', 'city', 'street', 'house_number', 'flat_number']
 
     def __str__(self):
@@ -175,45 +177,62 @@ class Address(models.Model):
 class ContactType(models.Model):
     contact_type = models.CharField(max_length=200, verbose_name='Тип контактной информации')
 
+    class Meta:
+        verbose_name = 'Тип контакта'
+        verbose_name_plural = 'Типы контактов'
+
     def __str__(self):
         return str(self.contact_type)
 
 
 class Contact(models.Model):
     contact_info = models.CharField(max_length=200, verbose_name='Контактная информация')
-    contact_type = models.ForeignKey(ContactType, null=True, blank=True, on_delete=models.DO_NOTHING)
-    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING)
+    contact_type = models.ForeignKey(ContactType, null=True, blank=True, on_delete=models.SET_NULL,
+                                     verbose_name='Тип контактной информации')
+    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING,
+                                  verbose_name=STRING_CONST.get('model.person_id'))
 
     class Meta:
-        verbose_name = 'Contact'
-        verbose_name_plural = 'Contacts'
-        ordering = ['contact_type', 'contact_info']
+        verbose_name = 'Контакт'
+        verbose_name_plural = 'Контакты'
+        ordering = ['person_id', 'contact_type', 'contact_info']
 
     def __str__(self):
         return f'{self.contact_type}: {self.contact_info}'
 
 
+# TODO: Стандартизировать подписи ко всем встречающимся типам контактов везде
+
 class RelationType(models.Model):
-    relation_type = models.CharField(max_length=200, verbose_name='Отношение к владельцу')
+    relation_type = models.CharField(max_length=200, verbose_name='Тип отношения к владельцу')
+
+    class Meta:
+        verbose_name = 'Тип отношения к владельцу'
+        verbose_name_plural = 'Типы отношений'
+
+    # TODO: Стандартизировать подписи ко всем встречающимся типам отношений везде
 
     def __str__(self):
         return str(self.relation_type)
 
 
 class Relation(models.Model):
-    ownership_part = models.FloatField(null=True, blank=True, verbose_name='Доля собственности')
-    start_date = models.DateField(null=True, blank=True, verbose_name='Дата возникновения отношения')
-    end_date = models.DateField(null=True, blank=True, verbose_name='Дата прекращения отношения')
-    estate_id = models.ForeignKey(Estate, null=True, blank=True, on_delete=models.DO_NOTHING)
-    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING)
-    relation_type = models.ForeignKey(RelationType, null=True, blank=True, on_delete=models.DO_NOTHING)
+    ownership_part = models.FloatField(null=True, blank=True, verbose_name='Доля собственности', default=100)
+    start_date = models.DateField(null=True, blank=True, verbose_name='Отношение возникло')
+    end_date = models.DateField(null=True, blank=True, verbose_name='Отношение прекращено')
+    estate_id = models.ForeignKey(Estate, null=True, blank=True, on_delete=models.DO_NOTHING,
+                                  verbose_name=STRING_CONST.get('model.estate_id'))
+    person_id = models.ForeignKey(Person, null=True, blank=True, on_delete=models.DO_NOTHING,
+                                  verbose_name=STRING_CONST.get('model.person_id'))
+    relation_type = models.ForeignKey(RelationType, null=True, blank=True, on_delete=models.SET_NULL,
+                                      verbose_name='Отношение')
 
     class Meta:
-        verbose_name = 'Relation'
-        verbose_name_plural = 'Relations'
+        verbose_name = 'Отношение'
+        verbose_name_plural = 'Отношения'
 
     def __str__(self):
-        return f'{self.estate_id.estate_number}, {self.person_id}, {self.relation_type}'
+        return f'{self.estate_id.estate_number},  {self.person_id},  {self.relation_type}'
 
 
 class Pass(models.Model):
@@ -224,11 +243,13 @@ class Pass(models.Model):
     issue_date = models.DateField(null=True, blank=True, verbose_name='Дата выдачи')
     expiration_date = models.DateField(null=True, blank=True, verbose_name='Действует до')
     comment = models.TextField(null=True, blank=True, verbose_name=STRING_CONST.get('model.comment'))
-    relation_id = models.OneToOneField(Relation, null=True, blank=True, on_delete=models.DO_NOTHING)
+    relation_id = models.OneToOneField(Relation, null=True, blank=True, on_delete=models.DO_NOTHING,
+                                       verbose_name='Имеет отношение')
 
     class Meta:
-        verbose_name = 'Pass'
-        verbose_name_plural = 'Passes'
+        verbose_name = 'Пропуск'
+        verbose_name_plural = 'Пропуска'
 
     def __str__(self):
-        return f'{self.relation_id}, {self.car_model}, {self.car_color}, {self.car_number}, № {self.pass_number}'
+        return (f'{self.relation_id.person_id}, {self.relation_id.estate_id}, {self.relation_id.relation_type}, '
+                f'{self.car_model}, {self.car_color}, {self.car_number}, № {self.pass_number}')
