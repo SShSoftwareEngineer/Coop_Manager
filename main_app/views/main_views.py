@@ -16,4 +16,4 @@ def service(request):
 
 def page_not_found(request, exception):
     return HttpResponseNotFound('<h1>Page not found!</h1>')
-    # return render(request, 'coop/404.html', status=404)
+    # return render(request, 'coopmanager/404.html', status=404)

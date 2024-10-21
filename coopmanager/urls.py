@@ -1,4 +1,4 @@
-"""coop URL Configuration
+"""coopmanager URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.1/topics/http/urls/
@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.i18n import i18n_patterns
 
-from coop import settings
+from coopmanager import settings
 
 from django.conf.urls.static import static
 from main_app.views import page_not_found
@@ -33,4 +33,4 @@ if settings.DEBUG:
 handler404 = page_not_found
 
 admin.site.site_header = 'Панель администрирования'
-admin.site.site_title = 'Coop'
+admin.site.site_title = 'CoopManager'

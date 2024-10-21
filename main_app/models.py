@@ -1,11 +1,13 @@
 import os
 
-from coop.settings import PHOTO_URL
+from coopmanager.settings import PHOTO_URL
 from django.db import models
 from django.shortcuts import reverse
 from main_app.constants import FIELD_VALUE_MODIFICATION, STRING_CONST
 from pytils.translit import slugify
 
+
+# TODO: переделать все отношения Многие-Ко многим бе искусственно сделанной промежуточной таблицы. Django создает её автоматически, если задать связть ManyToMany между полями
 
 # Create your models here.
 

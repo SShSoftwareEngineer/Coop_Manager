@@ -1,6 +1,6 @@
 import os.path
 
-from coop import settings
+from coopmanager import settings
 from django.contrib import admin
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
@@ -11,6 +11,7 @@ from main_app.constants import STRING_CONST
 # Register your models here.
 
 from .models import Estate, Person, Address, ContactType, Contact, RelationType, Relation, Pass
+
 
 # TODO: Сделать вывод дат в админке в нужном формате
 
@@ -23,7 +24,7 @@ def check_get_photo(person: Person, height: int):
 
 @admin.register(Estate)
 class EstateAdmin(admin.ModelAdmin):
-    readonly_fields = ['slug', 'update_date']
+    readonly_fields = ['slug', 'update_date_formatted']
     list_display = ['estate_number', 'floor', 'for_rent', 'for_sale']
     list_display_links = ['estate_number']
     search_fields = ['estate_number', 'comment']
@@ -37,7 +38,7 @@ class EstateAdmin(admin.ModelAdmin):
         (None, {'fields': [('initial_cost', 'build_date')]}),
         (None, {'fields': [('estimated_cost', 'estimated_cost_date')]}),
         (None, {'fields': [('for_rent', 'for_sale')]}),
-        (None, {'fields': ['comment', 'update_date', 'slug']}),
+        (None, {'fields': ['comment', 'update_date_formatted', 'slug']}),
     ]
     save_on_top = True
 
@@ -47,12 +48,16 @@ class EstateAdmin(admin.ModelAdmin):
             obj.slug = slugify(f'{obj.estate_number}-{obj.id}')
             obj.save()
 
+    @staticmethod
+    def update_date_formatted(obj):
+        return obj.update_date.strftime("%d.%m.%Y")
+
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
     list_display = ['surname', 'name', 'patronymic', 'get_preview_photo', 'owner_id']
     list_display_links = ['surname', 'name', 'patronymic', 'get_preview_photo']
-    readonly_fields = ['slug', 'update_date', 'get_photo']
+    readonly_fields = ['slug', 'update_date', 'get_photo', 'update_date_formatted']
     list_editable = []
     search_fields = ['surname', 'name', 'patronymic', 'comment']
     ordering = ['surname', 'name', 'patronymic']
@@ -60,7 +65,7 @@ class PersonAdmin(admin.ModelAdmin):
         (None, {'fields': ['surname', ('name', 'patronymic')]}),
         (None, {'fields': [('get_photo', 'photo')]}),
         (None, {'fields': [('questions', 'comment')]}),
-        (None, {'fields': ['owner_id', 'update_date', 'slug']}),
+        (None, {'fields': ['owner_id', 'update_date_formatted', 'slug']}),
     ]
     save_on_top = True
 
@@ -84,10 +89,14 @@ class PersonAdmin(admin.ModelAdmin):
             return photo_url
         return STRING_CONST.get('model.person_id.no_preview')
 
+    @staticmethod
+    def update_date_formatted(obj):
+        return obj.update_date.strftime("%d.%m.%Y")
+
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    readonly_fields = ['update_date']
+    readonly_fields = ['update_date_formatted']
     list_display = ['person_id', 'city', 'region', 'street', 'house_number', 'flat_number']
     list_display_links = ['person_id', 'city']
     list_filter = ['city']
@@ -100,9 +109,13 @@ class AddressAdmin(admin.ModelAdmin):
         (None, {'fields': ['person_id']}),
         (None, {'fields': [('city', 'region')]}),
         (None, {'fields': [('street', 'house_number', 'flat_number')]}),
-        (None, {'fields': ['postal_code', 'comment', 'update_date']}),
+        (None, {'fields': ['postal_code', 'comment', 'update_date_formatted']}),
     ]
     save_on_top = True
+
+    @staticmethod
+    def update_date_formatted(obj):
+        return obj.update_date.strftime("%d.%m.%Y")
 
 
 @admin.register(ContactType)
